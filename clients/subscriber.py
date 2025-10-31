@@ -20,6 +20,7 @@ def kafka_consumer_ssl():
         ssl_keyfile=key_file,
         ssl_password="your_must_add_password_here",
     )
+    consumer.subscribe(topics=[Topic])
     for event in consumer:
         print(event.value)
 
