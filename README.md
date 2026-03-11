@@ -57,12 +57,12 @@ This repo also holds a `swagger.json` file for the reusability of the endpoints.
 
 ## Validation
 
-In order to validate the connectivity with the running SSL Apache Kafka Broker in the repository two python
-clients are provided under the clients directory:
-- A publisher for publishing data
-- A subscriber for receiving data
+To validate the connectivity with the running SSL Apache Kafka Broker in the repository,
+two python clients are provided under the clients directory:
+- `publisher.py`: A publisher for publishing data
+- `subscriber.py`: A subscriber for receiving data
 
-In order to run these clients follow the steps below:
+To run these clients follow the steps below:
 1) Change the file paths for reading the certificates:
 ```python
 CARoot = "{path_to_the_created_certificate}/CARoot.pem"
@@ -72,30 +72,31 @@ Topic = "{topic_name}"
 ```
 2) Change the IP Address for the running broker:
 ```python
-# E.g., bootstrap_servers=["10.10.10.10:9093"],
+# e.g. bootstrap_servers=["10.10.10.10:9093"],
 bootstrap_servers=["{ip_address}:{ssl_port_number}"]
 ```
 3) Change the `ssl_password` with the one you specified in the env:
 ```python
-# E.g., sl_password="your_must_add_password_here",
-sl_password="{ssl_password}"
+# ssl_password="your_must_add_password_here",
+ssl_password="{ssl_password}"
 ```
-1) The clients can be executed as python scripts with the respective commands:
-   1) `python subscriber.py`
-   2) `python publisher.py`
+
+The clients can be executed as python scripts with the respective commands:
+* `python subscriber.py`
+* `python publisher.py`
 
 
 ## Execute as container
 
-The docker image is built via `docker-compose`. The steps below must be followed: 
+The docker image is built via `docker-compose`. The steps below must be followed:
 
-To build it for the github registry change the following entries in the associated [dockerfile](./Dockerfile):
-1) Change the values to be the same as the `.env.local`:
+1) To build it for the github registry change the following entries in the associated [dockerfile](./Dockerfile)
+to be the same as the `.env.local`:
 ```Dockerfile
 ENV PASSWORD="your_must_add_password_here"
 ENV DOMAIN="10.10.10.10"
 ```
-2) Build the docker image for linux/AMD64 platform
+2) Build the docker image for linux/AMD64 platform:
 
 ```bash
 docker build . -t ghcr.io/k3y-ltd/apache-kafka-ssl:0.0.1 --platform linux/amd64
@@ -114,11 +115,10 @@ docker push ghcr.io/k3y-ltd/apache-kafka-ssl:0.0.1
 ```
 to the lines:
 ```diff
-# Change the above lines to the bottom
 + build:
 +     iamge: ghcr.io/k3y-ltd/apache-kafka-ssl:0.0.1
 ```
-5) Run or build the container via:
+5) Finally run the container via:
 ```bash
 docker compose -f docker-compose.yml up -d
 ```
