@@ -1,15 +1,14 @@
-![ACROSS](/docs/logo_across.jpg)
+# ACROSS: Message Queue and Event Bus (MQEB)
 
-# Message Queue and Event Bus (MQEB)
-
-
-
-This Repository Holds the configuration and instruction for setting up a Message Queue and Event Bus (MQEB) utilizing Apache Kafka as the underlying software tool. MQEB has also been configured with SSL and it is integrated with a REST API for facilitating CRUD operations on topics.
+This Repository holds code for configuring and setting up a Message Queue and Event Bus (MQEB) that utilizes Apache Kafka.
+MQEB can be configured with SSL and is integrated with a REST API for facilitating CRUD operations on topics. MQEB has 
+been developed in the context of the **ACROSS EU project** with Grant Agreement **No 101097122** (see [acknowledgements](#acknowledgements)).
 
 ![Architecture](/docs/MQEB.jpg)
 
-## Description
-MQEB is running inside an Ubuntu Contianer and all the necessary steps to create the associated certificates are performed during the docker build step.
+MQEB is deployed as a container and all the necessary steps to create the associated certificates are performed during the
+docker build step.
+
 
 ## Prerequisite
 In order to run and deploy Apache Kafka the following must be included:
@@ -18,6 +17,7 @@ In order to run and deploy Apache Kafka the following must be included:
 
 
 ## MQEB Instalation
+
 To deploy and create the associated certificates you must follow the steps:
 1) Create a `.env` file following the `.env.local` descriptions.
 2) Change the `PASSWORD` in Dockerfile in the same as you specified in the `.env` file.
@@ -33,30 +33,36 @@ To deploy and create the associated certificates you must follow the steps:
    `sudo chmod 777 ca-cert`
    `sudo chmod 777 ca-key`
    `sudo chmod 777 CARoot.pem` 
-6) Change the paths for the certificates inside the admin.py
+7) Change the paths for the certificates inside the admin.py
+
 
 ## REST API
-In order to run the REST API the following criteria must be met:
-1) [FastAPI](https://fastapi.tiangolo.com/)
-2) [Uvicorn](https://www.uvicorn.org/)
-3) [Kafka-Python](https://kafka-python.readthedocs.io/en/master/)
+
+In order to run the REST API the following packages must be installed:
+- [`fastapi`](https://fastapi.tiangolo.com/)
+- [`uvicorn`](https://www.uvicorn.org/)
+- [`kafka-python`](https://kafka-python.readthedocs.io/en/master/)
+
 
 ### Execute
-Run the Admin REST API in a long running process in the background which will log every operation in a uvicorn.log file for tracing:
+
+Run the Admin REST API in a long running process in the background which will log every operation in a 
+uvicorn.log file for tracing:
 
 `nohup uvicorn admin:app --host 0.0.0.0 --port 5001 > uvicorn.log 2>&1 &`
 
-A Swagger file is also provided under the `{VM_IP_ADDRESS}:5001/docs` or `{VM_IP_ADDRESS}:5001/redocs`.
-
-A `swagger.json` is provided for the reusability of the endpoints.
+A swagger page can be founder under the `{VM_IP_ADDRESS}:5001/docs` or `{VM_IP_ADDRESS}:5001/redocs`. 
+This repo also holds a `swagger.json` file for the reusability of the endpoints.
 
 
 ## Validation
-In order to validate the connectivity with the running SSL Apache Kafka Broker in the repository two python clients are provided under the clients directory:
-- A publisher for broadcasting data
-- A subscriber for receiving data
 
-In order to run these clients the following steps must take place:
+To validate the connectivity with the running SSL Apache Kafka Broker in the repository,
+two python clients are provided under the clients directory:
+- `publisher.py`: A publisher for publishing data
+- `subscriber.py`: A subscriber for receiving data
+
+To run these clients follow the steps below:
 1) Change the file paths for reading the certificates:
 ```python
 CARoot = "{path_to_the_created_certificate}/CARoot.pem"
@@ -66,46 +72,67 @@ Topic = "{topic_name}"
 ```
 2) Change the IP Address for the running broker:
 ```python
-# E.g., bootstrap_servers=["10.10.10.10:9093"],
+# e.g. bootstrap_servers=["10.10.10.10:9093"],
 bootstrap_servers=["{ip_address}:{ssl_port_number}"]
 ```
 3) Change the `ssl_password` with the one you specified in the env:
 ```python
-# E.g., sl_password="your_must_add_password_here",
-sl_password="{ssl_password}"
+# ssl_password="your_must_add_password_here",
+ssl_password="{ssl_password}"
 ```
-4) Run the clients with the respective commands:
-   1) `python subscriber.py`
-   2) `python publisher.py`
 
-## Build a Docker Image
-Due the fact that the Dockerfile has some environment variables the docker image is built localy when `docker-compose` command is executed.
+The clients can be executed as python scripts with the respective commands:
+* `python subscriber.py`
+* `python publisher.py`
 
-In order to build it for the Github Registry you must change the following entries first and then run the commands:
-1) Change the values to be the same as the `.env.local`
+
+## Execute as container
+
+The docker image is built via `docker-compose`. The steps below must be followed:
+
+1) To build it for the github registry change the following entries in the associated [dockerfile](./Dockerfile)
+to be the same as the `.env.local`:
 ```Dockerfile
 ENV PASSWORD="your_must_add_password_here"
 ENV DOMAIN="10.10.10.10"
 ```
-2) Build the docker image for linux/AMD64 platform
+2) Build the docker image for linux/AMD64 platform:
 
 ```bash
 docker build . -t ghcr.io/k3y-ltd/apache-kafka-ssl:0.0.1 --platform linux/amd64
 ```
-3) Push image to Github Registry
+
+3) Push image to your github registry:
 ```shell
 docker push ghcr.io/k3y-ltd/apache-kafka-ssl:0.0.1
 ```
-4) Once you have uploaded the Docker Image to the Company Registry you can pull it in the `doker-compose.yml` file and change the following line
-```yml
-(-) build:
-(-)     context: .
-(-)     dockerfile: Dockerfile
 
-# Change the above lines to the bottom
-(+) build:
-(+)     iamge: ghcr.io/k3y-ltd/apache-kafka-ssl:0.0.1
+4) Once you have uploaded the docker image to the private registry you can use it in the corresponding `docker-compose.yml` by changing the following lines:
+```diff
+- build:
+-   context: .
+-   dockerfile: Dockerfile
 ```
-5) Run or build the container `docker-compose up -d`
+to the lines:
+```diff
++ build:
++     iamge: ghcr.io/k3y-ltd/apache-kafka-ssl:0.0.1
+```
+5) Finally run the container via:
+```bash
+docker compose -f docker-compose.yml up -d
+```
 
-![K3Y Ltd.](/docs/logo_k3y.png)
+
+## Acknowledgements
+
+🇪🇺 ACROSS project has received funding from the European Union's Horizon Europe research and innovation programme under **Grant Agreement No 101097122**, 
+as well as from the Smart Networks and Services Joint Undertaking (SNS JU). 
+
+*Disclaimer: Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily*
+*reflect those of the European Union or European Commission. Neither the European Union nor the European Commission can be held responsible for them.*
+
+<p align="middle">
+  <img src="./docs/logo_across.jpg" height="100">
+  <img src="./docs/logo_k3y.png" height="90">
+</p>
